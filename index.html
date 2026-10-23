@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام المهندس أحمد شعبان الذكي لإدارة المستشفيات</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cairo & Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        tealBrand: '#0d9488',
+                        tealDark: '#0f766e',
+                        tealLight: '#f0fdf4',
+                        cyanBrand: '#06b6d4',
+                        darkNavy: '#0f172a',
+                        darkPanel: '#1e293b'
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        tajawal: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.8),
+                         0 0 20px rgba(6, 182, 212, 0.6),
+                         0 0 30px rgba(13, 148, 136, 0.8);
+        }
+
+        .glow-box {
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.35);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(30, 41, 59, 0.8);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0d9488;
+            border-radius: 4px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        .animate-glow {
+            animation: pulseGlow 2.5s infinite;
+        }
+
+        /* Toast Animation */
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-animate {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased selection:bg-cyanBrand selection:text-white">
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+    <!-- ========================================================= -->
+    <!-- 1. INTRO / SPLASH SCREEN -->
+    <!-- ========================================================= -->
+    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-white transition-opacity duration-700 overflow-y-auto py-10">
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col items-center text-center px-4 max-w-xl">
+            <div class="mb-2 animate-glow">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 text-sm font-semibold tracking-wide mb-3 shadow-lg">
+                    <i class="fa-solid fa-hard-hat ml-1 text-yellow-400"></i> تصميم وإشراف المهندس أحمد شعبان
+                </span>
+                <h1 class="text-3xl md:text-5xl font-black text-cyan-300 neon-text tracking-tight leading-tight">
+                    نظام المهندس أحمد شعبان الذكي لإدارة المستشفيات
+                </h1>
+            </div>
+
+            <!-- Engineer Hero Icon -->
+            <div class="relative my-4 animate-float w-40 h-40 md:w-48 md:h-48 flex items-center justify-center">
+                <div class="absolute inset-0 bg-gradient-to-t from-cyan-500/20 to-transparent rounded-full filter blur-xl"></div>
+                <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-[0_10px_20px_rgba(6,182,212,0.4)]" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="100" cy="100" r="90" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="6,6" opacity="0.4"/>
+                    <path d="M 50 185 Q 50 140 100 140 Q 150 140 150 185 Z" fill="#0f172a" stroke="#0d9488" stroke-width="3"/>
+                    <path d="M 75 142 L 100 170 L 125 142" fill="none" stroke="#06b6d4" stroke-width="2"/>
+                    <rect x="96" y="150" width="8" height="25" fill="#06b6d4" rx="2"/>
+                    <rect x="90" y="118" width="20" height="25" fill="#fed7aa" rx="3"/>
+                    <ellipse cx="100" cy="105" rx="26" ry="28" fill="#fed7aa"/>
+                    <circle cx="90" cy="102" r="3" fill="#1e293b"/>
+                    <circle cx="110" cy="102" r="3" fill="#1e293b"/>
+                    <path d="M 92 115 Q 100 122 108 115" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 68 92 C 68 62, 132 62, 132 92 Z" fill="#eab308"/>
+                    <rect x="62" y="90" width="76" height="8" fill="#ca8a04" rx="3"/>
+                    <path d="M 94 65 L 106 65 L 104 88 L 96 88 Z" fill="#fde047" opacity="0.8"/>
+                    <circle cx="145" cy="150" r="14" fill="#06b6d4" />
+                    <path d="M 140 145 L 150 155 M 150 145 L 140 155" stroke="#ffffff" stroke-width="2"/>
+                </svg>
+            </div>
+
+            <p class="text-slate-300 text-xs md:text-sm mb-6 max-w-md leading-relaxed">
+                منظومة إدارية شاملة ومصممة خصيصاً لسهولة الاستخدام، التحكم التام بالأقسام، وإرسال التنبيهات والفواتير للمرضى عبر الواتساب مباشرة من الهاتف أو الكمبيوتر.
+            </p>
+
+            <div class="w-full flex flex-col items-center gap-3">
+                <button onclick="enterSystem()" class="glow-box px-8 py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-bold text-base transition-all duration-300 transform hover:scale-105 flex items-center gap-3 cursor-pointer">
+                    <span>دخول النظام الإداري الآن</span>
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div class="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden mt-2">
+                    <div id="progress-bar" class="h-full bg-cyan-400 w-0 transition-all duration-100 ease-linear"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 2. MAIN APPLICATION LAYER -->
+    <!-- ========================================================= -->
+    <div id="main-app" class="min-h-screen flex flex-col md:flex-row opacity-0 transition-opacity duration-700">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-full md:w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col justify-between border-l border-slate-800 transition-all duration-300">
+            <div>
+                <!-- Brand Header -->
+                <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3 sidebar-text">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shrink-0">
+                            <i class="fa-solid fa-hospital-user text-lg"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h2 class="font-black text-white text-xs leading-tight truncate">نظام المستشفى الذكي</h2>
+                            <p class="text-[11px] text-cyan-400 font-bold truncate">إشراف: م. أحمد شعبان</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800">
+                        <i id="sidebar-icon" class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="p-3 space-y-1 font-medium text-sm">
+                    <!-- Eng. Ahmed Shaaban Profile / Command Center -->
+                    <button onclick="switchTab('engineer')" id="nav-engineer" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition bg-gradient-to-r from-amber-500/20 to-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold my-1">
+                        <i class="fa-solid fa-user-gear w-5 text-center text-amber-400"></i>
+                        <span class="sidebar-text">مكتب المهندس أحمد شعبان</span>
+                    </button>
+
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition bg-teal-600 text-white shadow">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        <span class="sidebar-text">الرئيسية والإحصائيات</span>
+                    </button>
+
+                    <button onclick="switchTab('patients')" id="nav-patients" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition hover:bg-slate-800 hover:text-white text-slate-400">
+                        <i class="fa-solid fa-user-injured w-5 text-center"></i>
+                        <span class="sidebar-text">إدارة المرضى والسجل</span>
+                    </button>
+
+                    <button onclick="switchTab('doctors')" id="nav-doctors" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition hover:bg-slate-800 hover:text-white text-slate-400">
+                        <i class="fa-solid fa-user-md w-5 text-center"></i>
+                        <span class="sidebar-text">الكادر الطبي والأطباء</span>
+                    </button>
+
+                    <button onclick="switchTab('appointments')" id="nav-appointments" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition hover:bg-slate-800 hover:text-white text-slate-400">
+                        <i class="fa-solid fa-calendar-check w-5 text-center"></i>
+                        <span class="sidebar-text">المواعيد والحجوزات</span>
+                    </button>
+
+                    <button onclick="switchTab('rooms')" id="nav-rooms" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition hover:bg-slate-800 hover:text-white text-slate-400">
+                        <i class="fa-solid fa-bed w-5 text-center"></i>
+                        <span class="sidebar-text">الأقسام والغرف/الأسرة</span>
+                    </button>
+
+                    <button onclick="switchTab('pharmacy')" id="nav-pharmacy" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition hover:bg-slate-800 hover:text-white text-slate-400">
+                        <i class="fa-solid fa-pills w-5 text-center"></i>
+                        <span class="sidebar-text">الصيدلية والمخزن الطبي</span>
+                    </button>
+
+                    <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition hover:bg-slate-800 hover:text-white text-slate-400">
+                        <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i>
+                        <span class="sidebar-text">الفواتير والمالية</span>
+                    </button>
+
+                    <!-- WhatsApp Special Dedicated Tab -->
+                    <button onclick="switchTab('whatsapp')" id="nav-whatsapp" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition hover:bg-slate-800 hover:text-emerald-400 text-emerald-400 font-bold border border-emerald-500/20 mt-3 bg-emerald-950/20">
+                        <i class="fa-brands fa-whatsapp w-5 text-center text-lg"></i>
+                        <span class="sidebar-text">مركز إشعارات الواتساب</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Footer Info -->
+            <div class="p-3 border-t border-slate-800 sidebar-text">
+                <div class="bg-slate-800/80 p-2.5 rounded-xl flex items-center gap-3 border border-slate-700/50">
+                    <div class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-hard-hat text-xs"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-[10px] text-slate-400">تصميم وتطوير</p>
+                        <p class="text-xs font-bold text-white truncate">المهندس أحمد شعبان</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950">
+
+            <!-- TOP NAVBAR -->
+            <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-4 md:px-6 py-3 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-sm md:text-base font-black text-slate-800 dark:text-white">
+                        نظام المهندس أحمد شعبان الذكي
+                    </h1>
+                    <span class="hidden lg:inline-block text-xs bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 px-3 py-1 rounded-full border border-teal-200 dark:border-teal-800 font-bold">
+                        إدارة شاملة مع ربط الواتساب
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Date & Time -->
+                    <div class="hidden sm:flex flex-col text-left ml-2">
+                        <span id="current-date" class="text-xs font-bold text-slate-700 dark:text-slate-300"></span>
+                        <span id="current-time" class="text-[11px] text-slate-400"></span>
+                    </div>
+
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-xl text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i id="theme-icon" class="fa-solid fa-moon text-base"></i>
+                    </button>
+
+                    <!-- WhatsApp Status Badge -->
+                    <div id="wa-status-badge" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                        <span id="wa-status-text">جاهز لإرسال الواتساب</span>
+                    </div>
+
+                    <!-- User / Engineer Avatar -->
+                    <button onclick="switchTab('engineer')" class="flex items-center gap-2 border-r border-slate-200 dark:border-slate-800 pr-3 cursor-pointer">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-teal-500 text-white font-black flex items-center justify-center text-xs shadow">
+                            أش
+                        </div>
+                        <span class="hidden md:block text-xs font-bold text-slate-800 dark:text-slate-200">م. أحمد شعبان</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- DYNAMIC TAB CONTENTS -->
+            <div class="p-4 md:p-6 flex-1 overflow-y-auto">
+
+                <!-- ========================================================= -->
+                <!-- 0. ENG. AHMED SHAABAN PERSONAL PROFILE & COMMAND CENTER -->
+                <!-- ========================================================= -->
+                <section id="tab-engineer" class="tab-content hidden space-y-6">
+                    <!-- Profile Header Card -->
+                    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-950 text-white p-6 rounded-3xl shadow-xl border border-cyan-500/30 relative overflow-hidden">
+                        <div class="absolute -left-10 -bottom-10 w-60 h-60 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                        <div class="flex flex-col md:flex-row items-center gap-6 relative z-10">
+                            <!-- Engineer Icon -->
+                            <div class="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-gradient-to-tr from-cyan-500 to-teal-400 p-1 shadow-2xl shrink-0">
+                                <div class="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center text-cyan-400 text-4xl">
+                                    <i class="fa-solid fa-hard-hat text-yellow-400"></i>
+                                </div>
+                            </div>
+
+                            <div class="text-center md:text-right flex-1">
+                                <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
+                                    <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold">
+                                        <i class="fa-solid fa-code ml-1"></i> المطور والمهندس المسؤول
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
+                                        <i class="fa-solid fa-shield-check ml-1"></i> النظام نشط بالكامل
+                                    </span>
+                                </div>
+                                <h2 class="text-2xl md:text-3xl font-black text-cyan-300 neon-text">المهندس أحمد شعبان</h2>
+                                <p class="text-slate-300 text-xs md:text-sm mt-1 max-w-xl">
+                                    المشرف العام ومطور "نظام لإدارة المستشفيات". يمكنك من هنا متابعة أداء المنظومة، التحكم بالبيانات، وتخصيص هوية العيادة أو المستشفى.
+                                </p>
+                            </div>
+
+                            <div class="flex flex-col gap-2 w-full md:w-auto">
+                                <button onclick="showToast('تم إجراء اختبار النظام وسيرفر الواتساب بنجاح!')" class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-microchip"></i> فحص حالة النظام
+                                </button>
+                                <button onclick="exportSystemData()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-download"></i> نسخ احتياطي للبيانات
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Command Center Controls -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- System Config & Clinic Identity -->
+                        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-cyan-500"></i> تخصيص هوية المستشفى
+                            </h3>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">اسم المستشفى / العيادة الرسمي</label>
+                                <input type="text" id="eng-clinic-name" value="مستشفى المهندس أحمد شعبان الذكي" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-cyan-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">رقم الهاتف الافتراضي للواتساب</label>
+                                <input type="tel" id="eng-clinic-phone" placeholder="مثال: 201012345678" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-cyan-500" dir="ltr">
+                            </div>
+
+                            <button onclick="saveEngineerSettings()" class="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs transition">
+                                حفظ التحديثات
+                            </button>
+                        </div>
+
+                        <!-- System Broadcast via WhatsApp -->
+                        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-bullhorn text-emerald-500"></i> تعميم رسالة رسمية (واتساب)
+                            </h3>
+
+                            <p class="text-xs text-slate-400">إرسال تعميم باسم المهندس أحمد شعبان لأي رقم هاتف مباشرة عبر الواتساب:</p>
+
+                            <input type="tel" id="broadcast-target" placeholder="رقم الهاتف المستهدف" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-emerald-500" dir="ltr">
+
+                            <textarea id="broadcast-msg" rows="2" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-emerald-500">تنويه هام من مكتب المهندس أحمد شعبان: يسعدنا تقديم أفضل رعاية طبية لكم.</textarea>
+
+                            <button onclick="sendBroadcast()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> إرسال التعميم الآن
+                            </button>
+                        </div>
+
+                        <!-- Tech Support & Reset Desk -->
+                        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-headset text-indigo-500"></i> الدعم الفني والصيانة
+                            </h3>
+
+                            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl space-y-2 text-xs">
+                                <p class="font-bold text-slate-700 dark:text-slate-300"><i class="fa-solid fa-envelope ml-1 text-cyan-500"></i> البريد المباشر للمهندس:</p>
+                                <p class="text-slate-500 dark:text-slate-400 font-mono" dir="ltr">Eng.Ahmed.Shaaban@hospital.com</p>
+                                <p class="font-bold text-slate-700 dark:text-slate-300 mt-2"><i class="fa-solid fa-circle-info ml-1 text-teal-500"></i> قاعدة البيانات:</p>
+                                <p class="text-slate-500 dark:text-slate-400">حفظ تلقائي آمن داخل متصفحك (LocalStorage).</p>
+                            </div>
+
+                            <button onclick="clearSystemData()" class="w-full py-2.5 rounded-xl bg-red-50 dark:bg-red-950/40 hover:bg-red-100 text-red-600 dark:text-red-400 font-bold text-xs border border-red-200 dark:border-red-900 transition">
+                                <i class="fa-solid fa-trash-arrow-up ml-1"></i> تفريغ وإعادة ضبط كافة الأقسام
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================================= -->
+                <!-- 1. DASHBOARD TAB -->
+                <!-- ========================================================= -->
+                <section id="tab-dashboard" class="tab-content space-y-6">
+                    <!-- Dynamic Stat Cards Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400">إجمالي المرضى</p>
+                                <h3 id="stat-patients" class="text-2xl font-black text-slate-800 dark:text-white mt-1">0</h3>
+                                <p class="text-[11px] text-teal-600 font-semibold mt-0.5">مسجلين في المنظومة</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-hospital-user"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400">الكادر الطبي</p>
+                                <h3 id="stat-doctors" class="text-2xl font-black text-slate-800 dark:text-white mt-1">0</h3>
+                                <p class="text-[11px] text-cyan-600 font-semibold mt-0.5">أطباء متاحين</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-cyan-50 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-user-md"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400">المواعيد المحجوزة</p>
+                                <h3 id="stat-appointments" class="text-2xl font-black text-slate-800 dark:text-white mt-1">0</h3>
+                                <p class="text-[11px] text-indigo-600 font-semibold mt-0.5">جدول العيادات</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400">إجمالي الفواتير المحصلة</p>
+                                <h3 id="stat-revenue" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0 ج.م</h3>
+                                <p class="text-[11px] text-slate-400 font-semibold mt-0.5">إيرادات المدخلات</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-800 dark:text-white text-base">إحصائيات المنظومة المباشرة</h3>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-lg">تحديث تلقائي</span>
+                            </div>
+                            <div class="h-60">
+                                <canvas id="chart-main"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base mb-2">توزيع الأقسام والبيانات</h3>
+                            <div class="h-48 flex items-center justify-center">
+                                <canvas id="chart-pie"></canvas>
+                            </div>
+                            <p class="text-xs text-center text-slate-400 mt-2 font-bold">تحت إشراف م. أحمد شعبان</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Panel -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div>
+                                <h3 class="font-bold text-slate-800 dark:text-white text-base">اختصارات الإضافة السريعة</h3>
+                                <p class="text-xs text-slate-400">انقر على أي زر للبدء بإدخال البيانات فوراً</p>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="openModal('modal-patient')" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-plus"></i> إضافة مريض
+                                </button>
+                                <button onclick="openModal('modal-doctor')" class="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-plus"></i> إضافة طبيب
+                                </button>
+                                <button onclick="openModal('modal-appointment')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-plus"></i> حجز موعد
+                                </button>
+                                <button onclick="openModal('modal-bill')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-plus"></i> إصدار فاتورة
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="dashboard-empty-notice" class="text-center py-8">
+                            <div class="w-16 h-16 rounded-full bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto mb-3 text-2xl border border-teal-200 dark:border-teal-800">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </div>
+                            <p class="text-slate-700 dark:text-slate-200 font-bold text-sm">الأقسام فارغة حالياً وجاهزة لإدخال بياناتك</p>
+                            <p class="text-slate-400 text-xs mt-1">ابدأ بالتنقل بين الأقسام الجانبية أو استخدم أزرار الإضافة بالعلى للبدء.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================================= -->
+                <!-- 2. PATIENTS TAB -->
+                <!-- ========================================================= -->
+                <section id="tab-patients" class="tab-content hidden space-y-5">
+                    <!-- Top Toolbar -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="relative w-full sm:w-80">
+                            <i class="fa-solid fa-search absolute right-3.5 top-3 text-slate-400"></i>
+                            <input type="text" id="patient-search" onkeyup="renderPatients()" placeholder="بحث باسم المريض أو رقم الهاتف..." class="w-full pr-10 pl-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                        </div>
+                        <button onclick="openModal('modal-patient')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition shadow">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>تسجيل مريض جديد (+ إضافة)</span>
+                        </button>
+                    </div>
+
+                    <!-- Patients Table -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+                                    <tr>
+                                        <th class="p-4">الكود</th>
+                                        <th class="p-4">اسم المريض</th>
+                                        <th class="p-4">العمر / الجنس</th>
+                                        <th class="p-4">رقم الهاتف</th>
+                                        <th class="p-4">القسم/الحالة</th>
+                                        <th class="p-4 text-center">تواصل عبر الواتساب</th>
+                                        <th class="p-4 text-center">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-patients" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================================= -->
+                <!-- 3. DOCTORS TAB -->
+                <!-- ========================================================= -->
+                <section id="tab-doctors" class="tab-content hidden space-y-5">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base">الكادر الطبي والعيادات</h3>
+                            <p class="text-xs text-slate-400">إدارة سجل الأطباء والتخصصات والتأكد من المواعيد</p>
+                        </div>
+                        <button onclick="openModal('modal-doctor')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition shadow">
+                            <i class="fa-solid fa-user-md"></i>
+                            <span>إضافة طبيب جديد (+ إضافة)</span>
+                        </button>
+                    </div>
+
+                    <div id="grid-doctors" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+                </section>
+
+                <!-- ========================================================= -->
+                <!-- 4. APPOINTMENTS TAB -->
+                <!-- ========================================================= -->
+                <section id="tab-appointments" class="tab-content hidden space-y-5">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base">جدول المواعيد والحجوزات</h3>
+                            <p class="text-xs text-slate-400">تتبع مواعيد الكشوفات، وتأكيد الحجز عبر الواتساب</p>
+                        </div>
+                        <button onclick="openModal('modal-appointment')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition shadow">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            <span>حجز موعد جديد (+ إضافة)</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
+                        <div id="list-appointments" class="space-y-3"></div>
+                    </div>
+                </section>
+
+                <!-- ========================================================= -->
+                <!-- 5. ROOMS & BEDS TAB -->
+                <!-- ========================================================= -->
+                <section id="tab-rooms" class="tab-content hidden space-y-5">
+                    <div class="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base">إدارة الأقسام والأسرة/الغرف</h3>
+                            <p class="text-xs text-slate-400">متابعة الأجنحة الشاغرة والمشغولة بالمستشفى</p>
+                        </div>
+                        <button onclick="openModal('modal-room')" class="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition">
+                            <i class="fa-solid fa-plus ml-1"></i> إضافة قسم / غرفة جديد
+                        </button>
+                    </div>
+
+                    <div id="grid-rooms" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+                </section>
+
+                <!-- ========================================================= -->
+                <!-- 6. PHARMACY & INVENTORY TAB -->
+                <!-- ========================================================= -->
+                <section id="tab-pharmacy" class="tab-content hidden space-y-5">
+                    <div class="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base">الصيدلية والمخزن الطبي</h3>
+                            <p class="text-xs text-slate-400">إدارة الأدوية المتوفرة وتنبيهات النقص بالكميات</p>
+                        </div>
+                        <button onclick="openModal('modal-medicine')" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition">
+                            <i class="fa-solid fa-plus ml-1"></i> إضافة دواء / علاج جديد
+                        </button>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
+                        <div id="list-medicines" class="space-y-3"></div>
+                    </div>
+                </section>
+
+                <!-- ========================================================= -->
+                <!-- 7. BILLING & FINANCIALS TAB -->
+                <!-- ========================================================= -->
+                <section id="tab-billing" class="tab-content hidden space-y-5">
+                    <div class="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base">الفواتير والإيرادات المالية</h3>
+                            <p class="text-xs text-slate-400">إصدار الفواتير وتحصيل الحسابات وإرسال الإيصالات للواتساب</p>
+                        </div>
+                        <button onclick="openModal('modal-bill')" class="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition">
+                            <i class="fa-solid fa-file-invoice ml-1"></i> إصدار فاتورة جديدة (+ إضافة)
+                        </button>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+                                    <tr>
+                                        <th class="p-4">رقم الفاتورة</th>
+                                        <th class="p-4">اسم المريض</th>
+                                        <th class="p-4">الخدمة / البيان</th>
+                                        <th class="p-4">المبلغ</th>
+                                        <th class="p-4">الحالة</th>
+                                        <th class="p-4 text-center">إرسال الفاتورة (واتساب)</th>
+                                        <th class="p-4 text-center">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-bills" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================================= -->
+                <!-- 8. WHATSAPP DIRECT HUB & INSTRUCTIONS -->
+                <!-- ========================================================= -->
+                <section id="tab-whatsapp" class="tab-content hidden space-y-6">
+                    <!-- Banner -->
+                    <div class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white p-6 rounded-3xl shadow-xl border border-emerald-500/30">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl border border-emerald-400/30 shrink-0">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-black">مركز إشعارات ومراسلات الواتساب المباشر</h2>
+                                <p class="text-slate-300 text-xs mt-1 leading-relaxed">
+                                    مصمم ليعمل بمرونة وسهولة كاملة من هاتف الأندرويد، الأيفون، أو الكمبيوتر دون الحاجة لإعدادات معقدة.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Interactive Guide for Non-Technical Users -->
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <h3 class="font-bold text-slate-800 dark:text-white text-base mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-cyan-500"></i> كيف يعمل نظام إرسال الواتساب على تلفونك أو جهازك؟
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                                <span class="w-6 h-6 rounded-full bg-teal-600 text-white font-bold flex items-center justify-center mb-2">1</span>
+                                <h4 class="font-bold text-slate-800 dark:text-white mb-1">من الهاتف (أندرويد / أيفون)</h4>
+                                <p class="text-slate-500 dark:text-slate-400">بمجرد الضغط على زر "إرسال عبر واتساب"، سيتعرف الهاتف تلقائياً ويفتح تطبيق الواتساب مع الرسالة المجهزة.</p>
+                            </div>
+
+                            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                                <span class="w-6 h-6 rounded-full bg-cyan-600 text-white font-bold flex items-center justify-center mb-2">2</span>
+                                <h4 class="font-bold text-slate-800 dark:text-white mb-1">من الكمبيوتر (WhatsApp Web)</h4>
+                                <p class="text-slate-500 dark:text-slate-400">سيفتح النافذة المباشرة في المتصفح لرقم المريض مع النص الجاهز، فقط اضغط إرسال.</p>
+                            </div>
+
+                            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                                <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center mb-2">3</span>
+                                <h4 class="font-bold text-slate-800 dark:text-white mb-1">رمز الدولة المباشر</h4>
+                                <p class="text-slate-500 dark:text-slate-400">تأكد من كتابة الرقم بداية برمز الدولة (مثال: 20 لمصر، 966 للسعودية) لضمان التوصيل السليم.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Direct Messenger Workspace -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Custom Direct Message -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane text-emerald-500"></i> إرسال رسالة مباشرة لأي رقم
+                            </h3>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">رقم هاتف المريض / المستلم (مع رمز الدولة)</label>
+                                <input type="tel" id="wa-direct-phone" placeholder="مثال: 201012345678" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-emerald-500" dir="ltr">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">نص الرسالة</label>
+                                <textarea id="wa-direct-msg" rows="4" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-emerald-500">مرحباً بك، تحية طيبة من إدارة المستشفى الذكي (إشراف المهندس أحمد شعبان).</textarea>
+                            </div>
+
+                            <button onclick="sendDirectWhatsApp()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition flex items-center justify-center gap-2 shadow-md">
+                                <i class="fa-brands fa-whatsapp text-lg"></i>
+                                <span>إرسال عبر تطبيق الواتساب المباشر</span>
+                            </button>
+                        </div>
+
+                        <!-- Template Generator -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles text-cyan-500"></i> قوالب الرسائل السريعة (بنقرة واحدة)
+                            </h3>
+
+                            <p class="text-xs text-slate-400">اختر نوع الرسالة لتعبئتها تلقائياً بإعدادات المهندس أحمد شعبان:</p>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="loadTemplate('welcome')" class="p-3 bg-slate-50 dark:bg-slate-800 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 rounded-xl text-right text-xs font-bold border border-slate-200 dark:border-slate-700 transition">
+                                    <i class="fa-solid fa-heart-pulse text-cyan-500 ml-1"></i> رسالة ترحيب
+                                </button>
+                                <button onclick="loadTemplate('appointment')" class="p-3 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl text-right text-xs font-bold border border-slate-200 dark:border-slate-700 transition">
+                                    <i class="fa-solid fa-clock text-indigo-500 ml-1"></i> تذكير بموعد
+                                </button>
+                                <button onclick="loadTemplate('receipt')" class="p-3 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl text-right text-xs font-bold border border-slate-200 dark:border-slate-700 transition">
+                                    <i class="fa-solid fa-receipt text-emerald-500 ml-1"></i> إيصال فاتورة
+                                </button>
+                                <button onclick="loadTemplate('lab')" class="p-3 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-xl text-right text-xs font-bold border border-slate-200 dark:border-slate-700 transition">
+                                    <i class="fa-solid fa-flask text-amber-500 ml-1"></i> جاهزية نتائج الفحص
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODALS FOR INPUT DATA (ZERO-DATA READY) -->
+    <!-- ========================================================= -->
+
+    <!-- Modal: Add Patient -->
+    <div id="modal-patient" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 relative">
+            <button onclick="closeModal('modal-patient')" class="absolute top-4 left-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">تسجيل مريض جديد بالنظام</h3>
+            <form onsubmit="savePatient(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">اسم المريض الثلاثي</label>
+                    <input type="text" id="p-name" required placeholder="مثال: محمد أحمد محمود" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">العمر</label>
+                        <input type="number" id="p-age" required placeholder="30" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">الجنس</label>
+                        <select id="p-gender" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                            <option value="ذكر">ذكر</option>
+                            <option value="أنثى">أنثى</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">رقم الهاتف (للتواصل والواتساب)</label>
+                    <input type="tel" id="p-phone" required placeholder="201012345678" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500" dir="ltr">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">القسم / التشخيص المبدئي</label>
+                    <input type="text" id="p-dept" placeholder="مثال: الباطنية / متابعة دورية" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('modal-patient')" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm">إلغاء</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition">حفظ المريض</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Patient History/Details Modal -->
+    <div id="modal-patient-history" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 relative space-y-4">
+            <button onclick="closeModal('modal-patient-history')" class="absolute top-4 left-4 text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
+                <i class="fa-solid fa-file-medical text-teal-600"></i> السجل الطبي التفصيلي
+            </h3>
+            <div id="patient-history-content" class="space-y-3 text-sm"></div>
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeModal('modal-patient-history')" class="px-5 py-2 bg-slate-800 text-white font-bold text-xs rounded-xl">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Doctor -->
+    <div id="modal-doctor" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 relative">
+            <button onclick="closeModal('modal-doctor')" class="absolute top-4 left-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">إضافة طبيب جديد للكادر</h3>
+            <form onsubmit="saveDoctor(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">اسم الطبيب المعالج</label>
+                    <input type="text" id="doc-name" required placeholder="د. أحمد علي..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-cyan-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">التخصص العيادي</label>
+                    <input type="text" id="doc-spec" required placeholder="مثال: استشاري جراحة العظام" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-cyan-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">ساعات العمل والعيادة</label>
+                    <input type="text" id="doc-time" placeholder="مثال: يومياً من 10 ص حتى 4 م" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-cyan-500">
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('modal-doctor')" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm">إلغاء</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm transition">حفظ الطبيب</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add Appointment -->
+    <div id="modal-appointment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 relative">
+            <button onclick="closeModal('modal-appointment')" class="absolute top-4 left-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">حجز موعد جديد بالعيادة</h3>
+            <form onsubmit="saveAppointment(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">اسم المريض</label>
+                    <input type="text" id="app-patient" required placeholder="اسم المريض" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">الطبيب المعالج</label>
+                    <input type="text" id="app-doctor" required placeholder="اسم الطبيب" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">التاريخ</label>
+                        <input type="date" id="app-date" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">الوقت</label>
+                        <input type="time" id="app-time" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('modal-appointment')" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm">إلغاء</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition">تأكيد الحجز</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add Room -->
+    <div id="modal-room" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 relative">
+            <button onclick="closeModal('modal-room')" class="absolute top-4 left-4 text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">إضافة قسم / غرفة جديد</h3>
+            <form onsubmit="saveRoom(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">اسم القسم / الجناح / الغرفة</label>
+                    <input type="text" id="rm-name" required placeholder="مثال: جناح العناية المركزة - أ" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">إجمالي الأسرة</label>
+                        <input type="number" id="rm-total" required placeholder="10" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">الأسرة المشغولة</label>
+                        <input type="number" id="rm-occupied" required placeholder="2" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                    </div>
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('modal-room')" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm">إلغاء</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition">حفظ القسم</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add Medicine -->
+    <div id="modal-medicine" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 relative">
+            <button onclick="closeModal('modal-medicine')" class="absolute top-4 left-4 text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">إضافة صنف دواء بالصيدلية</h3>
+            <form onsubmit="saveMedicine(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">اسم العلاج / الدواء</label>
+                    <input type="text" id="med-name" required placeholder="مثال: بانادول إكسترا 500 ملجم" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">الكمية المتاحة بالمخزون</label>
+                    <input type="number" id="med-qty" required placeholder="50" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('modal-medicine')" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm">إلغاء</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition">إضافة للصيدلية</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add Bill -->
+    <div id="modal-bill" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 relative">
+            <button onclick="closeModal('modal-bill')" class="absolute top-4 left-4 text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">إصدار فاتورة علاجية جديدة</h3>
+            <form onsubmit="saveBill(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">اسم المريض</label>
+                    <input type="text" id="bill-patient" required placeholder="اسم المريض" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">رقم الهاتف (لإرسال الإيصال عبر الواتساب)</label>
+                    <input type="tel" id="bill-phone" required placeholder="201012345678" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500" dir="ltr">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">الخدمة / البيان</label>
+                    <input type="text" id="bill-desc" required placeholder="مثال: كشف طبي + تحليل معملي" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">المبلغ الإجمالي (ج.م)</label>
+                    <input type="number" id="bill-amount" required placeholder="500" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:outline-none focus:border-teal-500">
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('modal-bill')" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm">إلغاء</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition">إصدار وحفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- JAVASCRIPT ENGINE & LOGIC -->
+    <!-- ========================================================= -->
+    <script>
+        // Store State (Persisted fully in LocalStorage)
+        let db = {
+            patients: JSON.parse(localStorage.getItem('shaban_patients')) || [],
+            doctors: JSON.parse(localStorage.getItem('shaban_doctors')) || [],
+            appointments: JSON.parse(localStorage.getItem('shaban_appointments')) || [],
+            rooms: JSON.parse(localStorage.getItem('shaban_rooms')) || [],
+            medicines: JSON.parse(localStorage.getItem('shaban_medicines')) || [],
+            bills: JSON.parse(localStorage.getItem('shaban_bills')) || [],
+            engineerSettings: JSON.parse(localStorage.getItem('shaban_eng_settings')) || {
+                clinicName: 'مستشفى المهندس أحمد شعبان الذكي',
+                phone: ''
+            }
+        };
+
+        let chartMain = null;
+        let chartPie = null;
+
+        // Intro Screen Progress Bar Animation
+        let progress = 0;
+        const autoEnterInterval = setInterval(() => {
+            progress += 5;
+            const pb = document.getElementById('progress-bar');
+            if (pb) pb.style.width = progress + '%';
+            if (progress >= 100) {
+                clearInterval(autoEnterInterval);
+                enterSystem();
+            }
+        }, 40);
+
+        function enterSystem() {
+            clearInterval(autoEnterInterval);
+            const splash = document.getElementById('splash-screen');
+            const mainApp = document.getElementById('main-app');
+
+            splash.classList.add('opacity-0');
+            setTimeout(() => {
+                splash.style.display = 'none';
+                mainApp.classList.remove('opacity-0');
+                initApp();
+            }, 600);
+        }
+
+        // Initialize App Operations
+        function initApp() {
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+
+            renderAllViews();
+            initCharts();
+        }
+
+        function saveToStorage(key, data) {
+            localStorage.setItem('shaban_' + key, JSON.stringify(data));
+            renderAllViews();
+            updateCharts();
+        }
+
+        // Toast Notifications
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600' : 'bg-cyan-600';
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs font-bold toast-animate`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3500);
+        }
+
+        // DateTime Tracker
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString('ar-EG', options);
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon text-base';
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-base text-yellow-400';
+            }
+        }
+
+        // Sidebar Toggle
+        let sidebarExpanded = true;
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const texts = document.querySelectorAll('.sidebar-text');
+            const icon = document.getElementById('sidebar-icon');
+
+            sidebarExpanded = !sidebarExpanded;
+            if (sidebarExpanded) {
+                sidebar.classList.remove('md:w-20');
+                sidebar.classList.add('md:w-64');
+                texts.forEach(el => el.classList.remove('hidden'));
+                icon.className = 'fa-solid fa-chevron-right';
+            } else {
+                sidebar.classList.remove('md:w-64');
+                sidebar.classList.add('md:w-20');
+                texts.forEach(el => el.classList.add('hidden'));
+                icon.className = 'fa-solid fa-chevron-left';
+            }
+        }
+
+        // Tab Switcher Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(!btn.id.includes('engineer')) {
+                    btn.classList.remove('bg-teal-600', 'text-white', 'shadow');
+                    btn.classList.add('hover:bg-slate-800', 'text-slate-400');
+                }
+            });
+
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn && !tabId.includes('engineer')) {
+                activeBtn.classList.add('bg-teal-600', 'text-white', 'shadow');
+                activeBtn.classList.remove('hover:bg-slate-800', 'text-slate-400');
+            }
+        }
+
+        // Modal Handler
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // =========================================================
+        // DATA STORAGE & HANDLERS
+        // =========================================================
+
+        function savePatient(e) {
+            e.preventDefault();
+            const patient = {
+                id: 'P-' + Math.floor(1000 + Math.random() * 9000),
+                name: document.getElementById('p-name').value,
+                age: document.getElementById('p-age').value,
+                gender: document.getElementById('p-gender').value,
+                phone: document.getElementById('p-phone').value,
+                dept: document.getElementById('p-dept').value || 'عام',
+                date: new Date().toLocaleDateString('ar-EG')
+            };
+            db.patients.unshift(patient);
+            saveToStorage('patients', db.patients);
+            closeModal('modal-patient');
+            e.target.reset();
+            showToast('تم إدراج المريض بنجاح بالنظام');
+        }
+
+        function saveDoctor(e) {
+            e.preventDefault();
+            const doctor = {
+                id: 'D-' + Math.floor(100 + Math.random() * 900),
+                name: document.getElementById('doc-name').value,
+                spec: document.getElementById('doc-spec').value,
+                time: document.getElementById('doc-time').value || 'متاح بجدول العيادة'
+            };
+            db.doctors.unshift(doctor);
+            saveToStorage('doctors', db.doctors);
+            closeModal('modal-doctor');
+            e.target.reset();
+            showToast('تم تسجيل الطبيب بالكادر الطبي');
+        }
+
+        function saveAppointment(e) {
+            e.preventDefault();
+            const app = {
+                id: 'A-' + Math.floor(100 + Math.random() * 900),
+                patient: document.getElementById('app-patient').value,
+                doctor: document.getElementById('app-doctor').value,
+                date: document.getElementById('app-date').value,
+                time: document.getElementById('app-time').value
+            };
+            db.appointments.unshift(app);
+            saveToStorage('appointments', db.appointments);
+            closeModal('modal-appointment');
+            e.target.reset();
+            showToast('تم تثبيت حجز الموعد بنجاح');
+        }
+
+        function saveRoom(e) {
+            e.preventDefault();
+            const room = {
+                id: 'R-' + Math.floor(10 + Math.random() * 90),
+                name: document.getElementById('rm-name').value,
+                total: parseInt(document.getElementById('rm-total').value),
+                occupied: parseInt(document.getElementById('rm-occupied').value)
+            };
+            db.rooms.unshift(room);
+            saveToStorage('rooms', db.rooms);
+            closeModal('modal-room');
+            e.target.reset();
+            showToast('تم حفظ بيانات القسم/الغرفة');
+        }
+
+        function saveMedicine(e) {
+            e.preventDefault();
+            const med = {
+                id: 'M-' + Math.floor(100 + Math.random() * 900),
+                name: document.getElementById('med-name').value,
+                qty: parseInt(document.getElementById('med-qty').value)
+            };
+            db.medicines.unshift(med);
+            saveToStorage('medicines', db.medicines);
+            closeModal('modal-medicine');
+            e.target.reset();
+            showToast('تم تحديث مخزون الصيدلية');
+        }
+
+        function saveBill(e) {
+            e.preventDefault();
+            const bill = {
+                id: 'INV-' + Math.floor(1000 + Math.random() * 9000),
+                patient: document.getElementById('bill-patient').value,
+                phone: document.getElementById('bill-phone').value,
+                desc: document.getElementById('bill-desc').value,
+                amount: parseFloat(document.getElementById('bill-amount').value)
+            };
+            db.bills.unshift(bill);
+            saveToStorage('bills', db.bills);
+            closeModal('modal-bill');
+            e.target.reset();
+            showToast('تم إصدار الفاتورة وتوثيقها');
+        }
+
+        function deleteItem(type, index) {
+            db[type].splice(index, 1);
+            saveToStorage(type, db[type]);
+            showToast('تم الحذف بنجاح');
+        }
+
+        // Engineer Office Actions
+        function saveEngineerSettings() {
+            const clinicName = document.getElementById('eng-clinic-name').value;
+            const phone = document.getElementById('eng-clinic-phone').value;
+            db.engineerSettings = { clinicName, phone };
+            localStorage.setItem('shaban_eng_settings', JSON.stringify(db.engineerSettings));
+            showToast('تم حفظ إعدادات هويّة المستشفى بنجاح');
+        }
+
+        function sendBroadcast() {
+            const phone = document.getElementById('broadcast-target').value;
+            const msg = document.getElementById('broadcast-msg').value;
+            if (!phone) {
+                showToast('يرجى تحديد رقم الهاتف لإرسال التعميم', 'warning');
+                return;
+            }
+            openWhatsApp(phone, msg);
+        }
+
+        function clearSystemData() {
+            if(confirm('هل أنت تأكد من رغبتك في مسح كافة بيانات الأقسام وإعادتها لحالة النظام الصفرية؟')) {
+                localStorage.clear();
+                db = { patients: [], doctors: [], appointments: [], rooms: [], medicines: [], bills: [], engineerSettings: { clinicName: 'مستشفى المهندس أحمد شعبان الذكي', phone: '' } };
+                renderAllViews();
+                updateCharts();
+                showToast('تم تفريغ كافة بيانات المنظومة بنجاح');
+            }
+        }
+
+        function exportSystemData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "shaban_hospital_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('تم تصدير النسخة الاحتياطية للبيانات');
+        }
+
+        // =========================================================
+        // RENDER VIEWS
+        // =========================================================
+
+        function renderAllViews() {
+            // Stats
+            document.getElementById('stat-patients').innerText = db.patients.length;
+            document.getElementById('stat-doctors').innerText = db.doctors.length;
+            document.getElementById('stat-appointments').innerText = db.appointments.length;
+            const totalRev = db.bills.reduce((sum, b) => sum + b.amount, 0);
+            document.getElementById('stat-revenue').innerText = totalRev.toLocaleString('ar-EG') + ' ج.م';
+
+            const emptyNotice = document.getElementById('dashboard-empty-notice');
+            if(db.patients.length || db.doctors.length || db.appointments.length || db.bills.length) {
+                emptyNotice.style.display = 'none';
+            } else {
+                emptyNotice.style.display = 'block';
+            }
+
+            renderPatients();
+            renderDoctors();
+            renderAppointments();
+            renderRooms();
+            renderMedicines();
+            renderBills();
+        }
+
+        function renderPatients() {
+            const query = (document.getElementById('patient-search')?.value || '').toLowerCase();
+            const tbody = document.getElementById('table-patients');
+            tbody.innerHTML = '';
+
+            const filtered = db.patients.filter(p => p.name.toLowerCase().includes(query) || p.phone.includes(query));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400 font-bold">لا توجد بيانات مرضى مسجلة حالياً. اضغط على تسجيل مريض جديد.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition';
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-teal-600 dark:text-teal-400">${p.id}</td>
+                    <td class="p-4 font-bold text-slate-800 dark:text-slate-100">${p.name}</td>
+                    <td class="p-4 text-slate-600 dark:text-slate-400">${p.age} سنة / ${p.gender}</td>
+                    <td class="p-4 text-slate-600 dark:text-slate-400" dir="ltr">${p.phone}</td>
+                    <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">${p.dept}</span></td>
+                    <td class="p-4 text-center">
+                        <button onclick="sendPatientWhatsApp('${p.phone}', '${p.name}')" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-200 transition">
+                            <i class="fa-brands fa-whatsapp ml-1"></i> واتساب
+                        </button>
+                    </td>
+                    <td class="p-4 text-center flex items-center justify-center gap-2">
+                        <button onclick="viewPatientHistory('${p.id}')" class="text-cyan-600 hover:text-cyan-800 p-1"><i class="fa-solid fa-eye"></i></button>
+                        <button onclick="deleteItem('patients', ${index})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function viewPatientHistory(patientId) {
+            const p = db.patients.find(item => item.id === patientId);
+            if(!p) return;
+
+            const content = document.getElementById('patient-history-content');
+            content.innerHTML = `
+                <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl space-y-1">
+                    <p class="font-bold text-slate-800 dark:text-white">الاسم: ${p.name} (${p.id})</p>
+                    <p class="text-xs text-slate-500">العمر: ${p.age} سنة | الجنس: ${p.gender}</p>
+                    <p class="text-xs text-slate-500">رقم الهاتف: ${p.phone}</p>
+                    <p class="text-xs text-slate-500">القسم الرئيسي: ${p.dept}</p>
+                    <p class="text-xs text-slate-400">تاريخ التسجيل بالمنظومة: ${p.date || 'اليوم'}</p>
+                </div>
+                <div class="p-3 border border-slate-200 dark:border-slate-700 rounded-xl">
+                    <p class="font-bold text-xs text-slate-700 dark:text-slate-300 mb-1">الملاحظات الطبية والسجل:</p>
+                    <p class="text-xs text-slate-500">الحالة مستقرة - جاهزة للمتابعة مع الطبيب المختص.</p>
+                </div>
+            `;
+            openModal('modal-patient-history');
+        }
+
+        function renderDoctors() {
+            const container = document.getElementById('grid-doctors');
+            container.innerHTML = '';
+
+            if (db.doctors.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400 font-bold">لا يوجد أطباء مسجلين بالنظام حالياً. اضغط على زر (+ إضافة طبيب).</div>`;
+                return;
+            }
+
+            db.doctors.forEach((d, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center relative';
+                card.innerHTML = `
+                    <button onclick="deleteItem('doctors', ${index})" class="absolute top-3 left-3 text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash"></i></button>
+                    <div class="w-16 h-16 rounded-2xl bg-cyan-100 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-2xl font-black mb-3">
+                        ${d.name.charAt(0)}
+                    </div>
+                    <h4 class="font-bold text-slate-800 dark:text-white text-base">${d.name}</h4>
+                    <p class="text-xs text-cyan-600 dark:text-cyan-400 font-semibold mb-2">${d.spec}</p>
+                    <p class="text-xs text-slate-400 mb-4"><i class="fa-solid fa-clock ml-1"></i> ${d.time}</p>
+                    <button onclick="quickBookDoctor('${d.name}')" class="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-cyan-50 text-cyan-700 dark:text-cyan-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 transition">حجز موعد بالعيادة</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderAppointments() {
+            const container = document.getElementById('list-appointments');
+            container.innerHTML = '';
+
+            if (db.appointments.length === 0) {
+                container.innerHTML = `<p class="text-center py-8 text-slate-400 font-bold">جدول المواعيد فارغ حالياً. اضغط على زر (+ حجز موعد) لإضافة موعد.</p>`;
+                return;
+            }
+
+            db.appointments.forEach((a, index) => {
+                const item = document.createElement('div');
+                item.className = 'p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4';
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
+                            <i class="fa-solid fa-calendar"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-sm">المريض: ${a.patient}</h4>
+                            <p class="text-xs text-slate-400">مع الطبيب: ${a.doctor} | التاريخ: ${a.date} (${a.time})</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="notifyAppointmentWhatsApp('${a.patient}', '${a.doctor}', '${a.date}', '${a.time}')" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-bold transition">
+                            <i class="fa-brands fa-whatsapp ml-1"></i> تذكير بالواتساب
+                        </button>
+                        <button onclick="deleteItem('appointments', ${index})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderRooms() {
+            const container = document.getElementById('grid-rooms');
+            container.innerHTML = '';
+
+            if (db.rooms.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 font-bold">لا توجد أقسام أو أسرة مسجلة. اضغط على (+ إضافة قسم).</div>`;
+                return;
+            }
+
+            db.rooms.forEach((r, index) => {
+                const pct = Math.min(100, Math.round((r.occupied / r.total) * 100));
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative';
+                card.innerHTML = `
+                    <button onclick="deleteItem('rooms', ${index})" class="absolute top-3 left-3 text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash"></i></button>
+                    <h4 class="font-bold text-slate-800 dark:text-white text-base mb-1">${r.name}</h4>
+                    <p class="text-xs text-slate-400 mb-3">إشغال ${r.occupied} من أصل ${r.total} أسرة</p>
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden">
+                        <div class="bg-teal-500 h-full" style="width: ${pct}%"></div>
+                    </div>
+                    <span class="text-[11px] font-bold text-teal-600 dark:text-teal-400 mt-2 block text-left">${pct}% نسبة الإشغال</span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderMedicines() {
+            const container = document.getElementById('list-medicines');
+            container.innerHTML = '';
+
+            if (db.medicines.length === 0) {
+                container.innerHTML = `<p class="text-center py-8 text-slate-400 font-bold">الصيدلية فارغة حالياً. اضغط على (+ إضافة دواء) لتسجيل أصناف جديدة.</p>`;
+                return;
+            }
+
+            db.medicines.forEach((m, index) => {
+                const item = document.createElement('div');
+                item.className = 'p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between';
+                item.innerHTML = `
+                    <div>
+                        <h5 class="font-bold text-slate-800 dark:text-white text-sm">${m.name}</h5>
+                        <p class="text-xs text-slate-400">الكمية المتاحة بالمخزون: ${m.qty} وحدة</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs px-2.5 py-1 rounded-full font-bold ${m.qty > 10 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${m.qty > 10 ? 'متوفر' : 'منخفض'}</span>
+                        <button onclick="deleteItem('medicines', ${index})" class="text-red-500 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderBills() {
+            const tbody = document.getElementById('table-bills');
+            tbody.innerHTML = '';
+
+            if (db.bills.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400 font-bold">لا توجد فواتير محصلة أو صادرة حتى الآن. اضغط على (+ إصدار فاتورة).</td></tr>`;
+                return;
+            }
+
+            db.bills.forEach((b, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition';
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-teal-600 dark:text-teal-400">${b.id}</td>
+                    <td class="p-4 font-bold text-slate-800 dark:text-slate-100">${b.patient}</td>
+                    <td class="p-4 text-slate-600 dark:text-slate-400">${b.desc}</td>
+                    <td class="p-4 font-black text-emerald-600 dark:text-emerald-400">${b.amount.toLocaleString('ar-EG')} ج.م</td>
+                    <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700 font-bold">مسدد بالكامل</span></td>
+                    <td class="p-4 text-center">
+                        <button onclick="sendBillWhatsApp('${b.phone}', '${b.patient}', '${b.amount}', '${b.id}')" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-bold transition">
+                            <i class="fa-brands fa-whatsapp ml-1"></i> إرسال الفاتورة
+                        </button>
+                    </td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteItem('bills', ${index})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // =========================================================
+        // WHATSAPP MAPPING & DIRECT PHONE LINKS
+        // =========================================================
+
+        function openWhatsApp(phone, message) {
+            let cleanPhone = phone.replace(/[^0-9]/g, '');
+            if (!cleanPhone) {
+                showToast('يرجى كتابة رقم هاتف صحيح مع رمز الدولة', 'warning');
+                return;
+            }
+            const encodedMsg = encodeURIComponent(message);
+            const url = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
+            window.open(url, '_blank');
+        }
+
+        function sendDirectWhatsApp() {
+            const phone = document.getElementById('wa-direct-phone').value;
+            const msg = document.getElementById('wa-direct-msg').value;
+            openWhatsApp(phone, msg);
+        }
+
+        function sendPatientWhatsApp(phone, name) {
+            const clinic = db.engineerSettings.clinicName || 'مستشفى المهندس أحمد شعبان الذكي';
+            const msg = `مرحباً بك أ/ ${name} 🌸\nتحية طيبة من ${clinic}.\nنتمنى لك دوام الصحة والعافية!`;
+            openWhatsApp(phone, msg);
+        }
+
+        function notifyAppointmentWhatsApp(patient, doctor, date, time) {
+            const clinic = db.engineerSettings.clinicName || 'مستشفى المهندس أحمد شعبان الذكي';
+            const msg = `تذكير بموعد العيادة 🏥\nالمريض: ${patient}\nالطبيب المعالج: ${doctor}\nالتاريخ: ${date} - الساعة: ${time}\nنتمنى لك السلامة الدائمة! (${clinic})`;
+            openWhatsApp('', msg);
+        }
+
+        function sendBillWhatsApp(phone, patient, amount, billId) {
+            const clinic = db.engineerSettings.clinicName || 'مستشفى المهندس أحمد شعبان الذكي';
+            const msg = `إشعار فاتورة علاجية 🧾\nالمريض: ${patient}\nرقم الفاتورة: ${billId}\nالمبلغ المطلوب/المسدد: ${amount} ج.م\nشكراً لثقتكم بنا (${clinic})`;
+            openWhatsApp(phone, msg);
+        }
+
+        function loadTemplate(type) {
+            const clinic = db.engineerSettings.clinicName || 'مستشفى المهندس أحمد شعبان الذكي';
+            const area = document.getElementById('wa-direct-msg');
+
+            if (type === 'welcome') {
+                area.value = `مرحباً بكم في ${clinic}، يسعدنا خدمتكم وتوفير الرعاية الطبية الفائقة.`;
+            } else if (type === 'appointment') {
+                area.value = `نحيطكم علماً بتأكيد حجز موعدكم لدى العيادة في ${clinic}. نرجو الحضور قبل الموعد بـ 15 دقيقة.`;
+            } else if (type === 'receipt') {
+                area.value = `تم استلام دفعتكم بنجاح وتم تحرير الفاتورة في ${clinic}. نتمنى لكم دوام الصحة!`;
+            } else if (type === 'lab') {
+                area.value = `نفيدكم بظهور نتائج التحاليل والفحوصات الخاصة بكم في ${clinic}. يمكنكم استلامها أو طلبها من الاستقبال.`;
+            }
+            showToast('تم تحميل قالب الرسالة للواتساب');
+        }
+
+        function quickBookDoctor(docName) {
+            switchTab('appointments');
+            openModal('modal-appointment');
+            document.getElementById('app-doctor').value = docName;
+        }
+
+        // =========================================================
+        // CHARTS ENGINE
+        // =========================================================
+
+        function initCharts() {
+            const ctx1 = document.getElementById('chart-main')?.getContext('2d');
+            if (ctx1) {
+                chartMain = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['المرضى', 'الأطباء', 'المواعيد', 'الأقسام', 'الأدوية'],
+                        datasets: [{
+                            label: 'عدد العناصر',
+                            data: [db.patients.length, db.doctors.length, db.appointments.length, db.rooms.length, db.medicines.length],
+                            backgroundColor: ['#0d9488', '#06b6d4', '#6366f1', '#f59e0b', '#10b981'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            const ctx2 = document.getElementById('chart-pie')?.getContext('2d');
+            if (ctx2) {
+                chartPie = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['مرضى', 'أطباء', 'مواعيد'],
+                        datasets: [{
+                            data: [db.patients.length || 1, db.doctors.length || 1, db.appointments.length || 1],
+                            backgroundColor: ['#0d9488', '#06b6d4', '#6366f1']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        }
+
+        function updateCharts() {
+            if (chartMain) {
+                chartMain.data.datasets[0].data = [
+                    db.patients.length,
+                    db.doctors.length,
+                    db.appointments.length,
+                    db.rooms.length,
+                    db.medicines.length
+                ];
+                chartMain.update();
+            }
+
+            if (chartPie) {
+                chartPie.data.datasets[0].data = [
+                    db.patients.length || 1,
+                    db.doctors.length || 1,
+                    db.appointments.length || 1
+                ];
+                chartPie.update();
+            }
+        }
+    </script>
+</body>
+</html>
